@@ -47,3 +47,26 @@ button:hover {
     margin-top: 15px;
     width: 100%;
 }
+
+.status-message {
+    min-height: 20px;
+    margin: 15px 0 0;
+    color: #146c2e;
+    font-size: 14px;
+}
+
+.status-message.error {
+    color: #b00020;
+}
+
+.summary-output {
+    max-height: 240px;
+    margin: 15px 0 0;
+    padding: 12px;
+    overflow: auto;
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    color: #222;
+    font-size: 13px;
+    white-space: pre-wrap;
+}

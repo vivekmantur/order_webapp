@@ -11,22 +11,98 @@
     <div class="container">
         <h1>Order Processing System</h1>
 
-        <form>
-            <input type="text" placeholder="Customer Name">
+        <form id="order-form">
+            <input type="text" name="customer_name" placeholder="Customer Name" required>
 
-            <input type="text" placeholder="Product Name">
+            <input type="text" name="product_name" placeholder="Product Name" required>
 
-            <input type="number" placeholder="Quantity">
+            <input type="number" name="quantity" placeholder="Quantity" min="1" required>
 
-            <input type="number" step="0.01" placeholder="Price">
+            <input type="number" name="price" step="0.01" placeholder="Price" min="0" required>
 
             <button type="submit">Submit Order</button>
         </form>
 
-        <button class="summary-btn">
+        <button type="button" class="summary-btn" id="summary-btn">
             Fetch Summary
         </button>
+
+        <p id="status-message" class="status-message"></p>
+        <pre id="summary-output" class="summary-output"></pre>
     </div>
+
+    <script>
+        const form = document.getElementById("order-form");
+        const summaryButton = document.getElementById("summary-btn");
+        const statusMessage = document.getElementById("status-message");
+        const summaryOutput = document.getElementById("summary-output");
+
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.classList.toggle("error", isError);
+        }
+
+        async function readJsonResponse(response) {
+            const text = await response.text();
+
+            try {
+                return JSON.parse(text);
+            } catch {
+                return { message: text || response.statusText };
+            }
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            showStatus("Submitting order...");
+            summaryOutput.textContent = "";
+
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch("/api/orders", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await readJsonResponse(response);
+
+                if (!response.ok) {
+                    showStatus(data.message || "Order submission failed", true);
+                    return;
+                }
+
+                showStatus(data.message || "Order saved successfully");
+                form.reset();
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        summaryButton.addEventListener("click", async () => {
+            showStatus("Fetching summary...");
+            summaryOutput.textContent = "";
+
+            try {
+                const response = await fetch("/api/summary");
+                const data = await readJsonResponse(response);
+
+                if (!response.ok) {
+                    showStatus(data.message || "Could not fetch summary", true);
+                    return;
+                }
+
+                showStatus("Summary loaded");
+                summaryOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+    </script>
 
 </body>
 </html>
